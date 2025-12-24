@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mme
+  namespace: open5gs-4g
+spec:
+  selector:
+    app: mme
+  ports:
+    - name: s1ap
+      protocol: SCTP
+      port: 36412
+      targetPort: 36412
+    - name: s11
+      protocol: UDP
+      port: 2123
+      targetPort: 2123
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mme
+  namespace: open5gs-4g
+spec:
+  selector:
+    matchLabels:
+      app: mme
+  template:
+    metadata:
+      labels:
+        app: mme
+    spec:
+      containers:
+        - name: mme
+          image: localhost:5000/open5gs-mme:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/open5gs/bin/open5gs-mmed"]
+          args: ["-c", "/opt/open5gs/etc/open5gs/mme.yaml"]

@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: open5gs-5g
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-amf-config
+  namespace: open5gs-5g
+data:
+  amf.yaml: |
+    logger:
+      file: /opt/open5gs/var/log/open5gs/amf.log
+    amf:
+      freeDiameter:
+        identity: amf.localdomain
+        realm: localdomain
+        listen_on: 0.0.0.0
+      guami:
+        - plmn_id:
+            mcc: 999
+            mnc: 70
+          amf_id:
+            region: 2
+            set: 1
+            pointer: 1
+      tai:
+        - plmn_id:
+            mcc: 999
+            mnc: 70
+          tac: 1
+      plmn_support:
+        - plmn_id:
+            mcc: 999
+            mnc: 70
+          s_nssai:
+            - sst: 1
+      ngap:
+        - addr: 0.0.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open5gs-amf
+  namespace: open5gs-5g
+spec:
+  selector:
+    app: open5gs-amf
+  ports:
+    - protocol: SCTP
+      port: 38412
+      targetPort: 38412
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open5gs-amf
+  namespace: open5gs-5g
+spec:
+  selector:
+    matchLabels:
+      app: open5gs-amf
+  template:
+    metadata:
+      labels:
+        app: open5gs-amf
+    spec:
+      containers:
+        - name: amf
+          image: localhost:5000/open5gs-amf:latest
+          volumeMounts:
+            - name: amf-config
+              mountPath: /opt/open5gs/etc/open5gs/amf.yaml
+              subPath: amf.yaml
+      volumes:
+        - name: amf-config
+          configMap:
+            name: open5gs-amf-config

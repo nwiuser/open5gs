@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sgwc
+  namespace: open5gs-4g
+spec:
+  selector:
+    app: sgwc
+  ports:
+    - name: s11
+      protocol: UDP
+      port: 2123
+      targetPort: 2123
+    - name: pfcp
+      protocol: UDP
+      port: 8805
+      targetPort: 8805
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sgwc
+  namespace: open5gs-4g
+spec:
+  selector:
+    matchLabels:
+      app: sgwc
+  template:
+    metadata:
+      labels:
+        app: sgwc
+    spec:
+      containers:
+        - name: sgwc
+          image: localhost:5000/open5gs-sgwc:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/open5gs/bin/open5gs-sgwcd"]
+          args: ["-c", "/opt/open5gs/etc/open5gs/sgwc.yaml"]

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pcrf
+  namespace: open5gs-4g
+spec:
+  selector:
+    app: pcrf
+  ports:
+    - protocol: TCP
+      port: 3868
+      targetPort: 3868
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pcrf
+  namespace: open5gs-4g
+spec:
+  selector:
+    matchLabels:
+      app: pcrf
+  template:
+    metadata:
+      labels:
+        app: pcrf
+    spec:
+      containers:
+        - name: pcrf
+          image: localhost:5000/open5gs-pcrf:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_URI
+              value: mongodb://mongodb:27017/open5gs
+          command: ["/opt/open5gs/bin/open5gs-pcrfd"]
+          args: ["-c", "/opt/open5gs/etc/open5gs/pcrf.yaml"]

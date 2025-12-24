@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    restart: always
+
+  # Example build targets
+  mme:
+    build: ./docker/4g-mme
+    image: localhost:5000/open5gs-mme:latest
+    depends_on:
+      - registry
+
+  amf:
+    build: ./docker/5g-amf
+    image: localhost:5000/open5gs-amf:latest
+    depends_on:
+      - registry
+
+  upf:
+    build: ./docker/5g-upf
+    image: localhost:5000/open5gs-upf:latest
+    depends_on:
+      - registry
