@@ -48,7 +48,18 @@ $UeraLocal = "$($Registry)/ueransim-gnb:latest"
 docker tag $UeraImage $UeraLocal
 docker push $UeraLocal
 
-# 4. MongoDB
+docker tag $UeraImage $UeraLocal
+docker push $UeraLocal
+
+# 4. srsRAN (4G)
+Write-Host "--- Processing srsRAN ---" -ForegroundColor Yellow
+$SrsImage = "gradiant/srsran-4g:23_04_1"
+docker pull $SrsImage
+$SrsLocal = "$($Registry)/srsran:latest"
+docker tag $SrsImage $SrsLocal
+docker push $SrsLocal
+
+# 5. MongoDB
 Write-Host "--- Processing MongoDB ---" -ForegroundColor Yellow
 docker pull mongo:latest
 docker tag mongo:latest "$Registry/mongodb:latest"

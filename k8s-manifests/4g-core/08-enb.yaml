@@ -1,0 +1,468 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: srsenb-config
+  namespace: open5gs
+data:
+  enb.conf: |
+    [enb]
+    enb_id = 0x19B
+    mcc = 999
+    mnc = 70
+    mme_addr = mme
+    gtp_bind_addr = 127.0.0.1
+    s1c_bind_addr = 127.0.0.1
+    n_prb = 50
+    tm = 1
+
+    [rf]
+    dl_earfcn = 3350
+    tx_gain = 80
+    rx_gain = 40
+    device_name = zmq
+    device_args = fail_on_disconnect=true,tx_port=tcp://*:2000,rx_port=tcp://srsue:2001,id=enb,base_srate=23.04e6
+
+  rr.conf: |
+    mac_cnfg =
+    {
+      phr_cnfg =
+      {
+        dl_pathloss_change = "dB3"; // Valid: 1, 3, 6 or INFINITY
+        periodic_phr_timer = 50;
+        prohibit_phr_timer = 0;
+      };
+      ulsch_cnfg =
+      {
+        max_harq_tx = 4;
+        periodic_bsr_timer = 20; // in ms
+        retx_bsr_timer = 320;   // in ms
+      };
+
+      time_alignment_timer = -1; // -1 is infinity
+    };
+
+    phy_cnfg =
+    {
+      phich_cnfg =
+      {
+        duration  = "Normal";
+        resources = "1/6";
+      };
+
+      pusch_cnfg_ded =
+      {
+        beta_offset_ack_idx = 6;
+        beta_offset_ri_idx  = 6;
+        beta_offset_cqi_idx = 6;
+      };
+
+      sched_request_cnfg =
+      {
+        dsr_trans_max = 64;
+        period = 20;          // in ms
+        subframe = [1, 11];
+        nof_prb = 2;
+      };
+
+      cqi_report_cnfg =
+      {
+        mode = "periodic";
+        simultaneousAckCQI = true;
+        period = 40;          // in ms
+        nom_pdsch_rs_epre_offset = 0;
+        cqi_pmi_config_index = 78;
+        ri_config_index = 322;
+        subframe = [0];
+        m_ri = 8;
+      };
+    };
+
+    cell_list =
+    (
+      {
+        cell_id = 0x01;
+        tac = 0x0007;
+        pci = 1;
+        dl_earfcn = 3350;
+        ho_active = false;
+
+        // CA cells
+        scell_list = (
+        )
+
+        // Cells available for handover
+        meas_cell_list =
+        (
+          {
+            eci = 0x19C02;
+            dl_earfcn = 2850;
+            pci = 2;
+          }
+        );
+
+        // Select measurement report configuration (all reports are combined with all measurement objects)
+        meas_report_desc =
+        (
+            {
+              eventA = 3;
+              a3_offset = 6;
+              hysteresis = 0;
+              time_to_trigger = 480;
+              trigger_quant = "RSRP";
+              max_report_cells = 1;
+              report_interv = 120;
+              report_amount = 1;
+            }
+        );
+        meas_quant_desc = {
+            // averaging filter coefficient
+            rsrq_config = 4;
+            rsrp_config = 4;
+         };
+      }
+    );
+
+    nr_cell_list =
+    (
+      // no NR cells
+    );
+
+  sib.conf: |
+    sib1 =
+    {
+        intra_freq_reselection = "Allowed";
+        q_rx_lev_min = -65;
+        //p_max = 3;
+        cell_barred = "NotBarred"
+        si_window_length = 20;
+        sched_info =
+        (
+            {
+                si_periodicity = 16;
+                si_mapping_info = [ 3 ];
+            }
+        );
+        system_info_value_tag = 0;
+    };
+
+    sib2 = 
+    {
+        rr_config_common_sib =
+        {
+            rach_cnfg = 
+            {
+                num_ra_preambles = 52;
+                preamble_init_rx_target_pwr = -104;
+                pwr_ramping_step = 6;  // in dB
+                preamble_trans_max = 10;
+                ra_resp_win_size = 10;  // in ms
+                mac_con_res_timer = 64; // in ms
+                max_harq_msg3_tx = 4;
+            };
+            bcch_cnfg = 
+            {
+                modification_period_coeff = 16; // in ms
+            };
+            pcch_cnfg = 
+            {
+                default_paging_cycle = 32; // in rf
+                nB = "1";
+            };
+            prach_cnfg =
+            {
+                root_sequence_index = 128;
+                prach_cnfg_info =
+                {
+                    high_speed_flag = false;
+                    prach_config_index = 3;
+                    prach_freq_offset = 4;
+                    zero_correlation_zone_config = 5;
+                };
+            };
+            pdsch_cnfg = 
+            {
+                p_b = 1;
+                rs_power = 0;
+            };
+            pusch_cnfg = 
+            {
+                n_sb = 1;
+                hopping_mode = "inter-subframe";
+                pusch_hopping_offset = 2;
+                enable_64_qam = false; // 64QAM PUSCH is not currently enabled
+                ul_rs = 
+                {
+                    cyclic_shift = 0; 
+                    group_assignment_pusch = 0;
+                    group_hopping_enabled = false; 
+                    sequence_hopping_enabled = false; 
+                };
+            };
+            pucch_cnfg =
+            {
+                delta_pucch_shift = 1;
+                n_rb_cqi = 1;
+                n_cs_an = 0;
+                n1_pucch_an = 12;
+            };
+            ul_pwr_ctrl =
+            {
+                p0_nominal_pusch = -85;
+                alpha = 0.7;
+                p0_nominal_pucch = -107;
+                delta_flist_pucch =
+                {
+                    format_1  = 0;
+                    format_1b = 3; 
+                    format_2  = 1;
+                    format_2a = 2;
+                    format_2b = 2;
+                };
+                delta_preamble_msg3 = 6;
+            };
+            ul_cp_length = "len1";
+        };
+
+        ue_timers_and_constants =
+        {
+            t300 = 2000; // in ms
+            t301 = 100;  // in ms
+            t310 = 200; // in ms
+            n310 = 1;
+            t311 = 10000; // in ms
+            n311 = 1;
+        };
+
+        freqInfo = 
+        {
+            ul_carrier_freq_present = true; 
+            ul_bw_present = false;
+            additional_spectrum_emission = 1; 
+        };
+
+        time_alignment_timer = "INFINITY"; // use "sf500", "sf750", etc.
+    };
+
+    sib3 =
+    {
+        cell_reselection_common = {
+            q_hyst = 2; // in dB
+        },
+        cell_reselection_serving = {
+            s_non_intra_search = 3,
+            thresh_serving_low = 2,
+            cell_resel_prio = 6
+        },
+        intra_freq_reselection = {
+            q_rx_lev_min = -61,
+            p_max = 23,
+            s_intra_search = 5,
+            presence_ant_port_1 = true,
+            neigh_cell_cnfg = 1,
+            t_resel_eutra = 1
+        }
+    };
+
+  rb.conf: |
+    qci_config = (
+      {
+        qci=1;
+        pdcp_config = {
+          discard_timer = 100;
+          status_report_required = true;
+        };
+        rlc_config = {
+          ul_am = {
+            t_poll_retx = 45;
+            poll_pdu = 128;
+            poll_byte = 125;
+            max_retx_thresh = 8;
+          };
+          dl_am = {
+            t_reordering = 45;
+            t_status_prohibit = 45;
+          };
+        };
+        logical_channel_config = {
+          priority = 2;
+          prioritized_bit_rate = 8;
+          bucket_size_duration = 100;
+          log_chan_group = 1;
+        };
+      },
+      {
+        qci=7;
+        pdcp_config = {
+          discard_timer = 100;
+          status_report_required = true;
+        };
+        rlc_config = {
+          ul_am = {
+            t_poll_retx = 45;
+            poll_pdu = 128;
+            poll_byte = 125;
+            max_retx_thresh = 8;
+          };
+          dl_am = {
+            t_reordering = 45;
+            t_status_prohibit = 45;
+          };
+        };
+        logical_channel_config = {
+          priority = 4;
+          prioritized_bit_rate = 8;
+          bucket_size_duration = 100;
+          log_chan_group = 2;
+        };
+      },
+      {
+        qci=9;
+        pdcp_config = {
+          discard_timer = -1; // Infinity
+          status_report_required = false;
+        };
+        rlc_config = {
+          ul_um = {
+            sn_field_length = 10;
+          };
+          dl_um = {
+            sn_field_length = 10;
+            t_reordering = 45;
+          };
+        };
+        logical_channel_config = {
+          priority = 11;
+          prioritized_bit_rate = 0;
+          bucket_size_duration = 100;
+          log_chan_group = 3;
+        };
+      }
+    );
+
+    srb1_5g_config = {
+     rlc_config = {
+       ul_am = {
+         sn_field_len = 12;
+         t_poll_retx = 45;
+         poll_pdu = -1;
+         poll_byte = -1;
+         max_retx_thres = 8;
+       };
+       dl_am = {
+         sn_field_len = 12;
+         t_reassembly = 35;
+         t_status_prohibit = 10;
+       };
+     };
+    };
+
+    srb2_5g_config = {
+     rlc_config = {
+       ul_am = {
+         sn_field_len = 12;
+         t_poll_retx = 45;
+         poll_pdu = -1;
+         poll_byte = -1;
+         max_retx_thres = 8;
+       };
+       dl_am = {
+         sn_field_len = 12;
+         t_reassembly = 35;
+         t_status_prohibit = 10;
+       };
+     };
+    };
+
+    five_qi_config = (
+    {
+      five_qi = 9;
+      pdcp_nr_config = {
+        drb = {
+          pdcp_sn_size_ul = 18;
+          pdcp_sn_size_dl = 18;
+          discard_timer = 50;
+          integrity_protection = false;
+          status_report = false;
+        };
+        t_reordering = 50;
+      };
+      rlc_config = {
+        am = {
+          ul_am = {
+            sn_field_len = 12;
+            t_poll_retx = 50;
+            poll_pdu = 4;
+            poll_byte = 3000;
+            max_retx_thres = 4;
+          };
+          dl_am = {
+            sn_field_len = 12;
+            t_reassembly = 50;
+            t_status_prohibit = 50;
+          };
+        };
+      };
+    }
+    );
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: srsenb
+  namespace: open5gs
+  labels:
+    app: srsenb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: srsenb
+  template:
+    metadata:
+      labels:
+        app: srsenb
+    spec:
+      containers:
+        - name: enb
+          image: localhost:5000/srsran:latest
+          imagePullPolicy: IfNotPresent
+          command: ["srsenb"]
+          args: ["/etc/srsran/enb.conf"]
+          ports:
+            - containerPort: 2000 # ZMQ TX
+              name: zmq-tx
+            - containerPort: 2152 # GTP
+              name: gtp
+            - containerPort: 36412 # S1AP
+              name: s1ap
+          volumeMounts:
+            - name: config
+              mountPath: /etc/srsran/enb.conf
+              subPath: enb.conf
+            - name: config
+              mountPath: /etc/srsran/rr.conf
+              subPath: rr.conf
+            - name: config
+              mountPath: /etc/srsran/sib.conf
+              subPath: sib.conf
+            - name: config
+              mountPath: /etc/srsran/rb.conf
+              subPath: rb.conf
+      volumes:
+        - name: config
+          configMap:
+            name: srsenb-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: srsenb
+  namespace: open5gs
+spec:
+  selector:
+    app: srsenb
+  ports:
+    - name: zmq-tx
+      port: 2000
+      targetPort: 2000

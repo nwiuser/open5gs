@@ -2,36 +2,58 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: open5gs-smf-config
-  namespace: open5gs-5g
+  namespace: open5gs
 data:
   smf.yaml: |
+    db_uri: mongodb://mongodb:27017/open5gs
     logger:
-      file: /opt/open5gs/var/log/open5gs/smf.log
+      level: info
+      file:
+        path: /opt/open5gs/var/log/open5gs/smf.log
     smf:
-      freeDiameter:
-        identity: smf.localdomain
-        realm: localdomain
-        listen_on: 0.0.0.0
-      pfcp:
-        - addr: 0.0.0.0
+      sbi:
+        server:
+          - address: 0.0.0.0
+            port: 7777
+        client:
+          nrf:
+            - uri: http://open5gs-nrf:7777
       gtpc:
-        - addr: 0.0.0.0
+        server:
+          - address: 0.0.0.0
       gtpu:
-        - addr: 0.0.0.0
+        server:
+          - address: 0.0.0.0
+      pfcp:
+        server:
+          - address: 0.0.0.0
+      session:
+        - subnet: 10.45.0.0/16
+          gateway: 10.45.0.1
+      dns:
+        - 8.8.8.8
+        - 8.8.4.4
+      mtu: 1400
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: open5gs-smf
-  namespace: open5gs-5g
+  namespace: open5gs
 spec:
   selector:
     app: open5gs-smf
   ports:
-    - protocol: UDP
+    - name: sbi
+      protocol: TCP
+      port: 7777
+      targetPort: 7777
+    - name: gtpc
+      protocol: UDP
       port: 2123
       targetPort: 2123
-    - protocol: UDP
+    - name: pfcp
+      protocol: UDP
       port: 8805
       targetPort: 8805
 ---
@@ -39,7 +61,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: open5gs-smf
-  namespace: open5gs-5g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:
@@ -52,6 +74,9 @@ spec:
       containers:
         - name: smf
           image: localhost:5000/open5gs-smf:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/open5gs/bin/open5gs-smfd"]
+          args: ["-c", "/opt/open5gs/etc/open5gs/smf.yaml"]
           volumeMounts:
             - name: smf-config
               mountPath: /opt/open5gs/etc/open5gs/smf.yaml

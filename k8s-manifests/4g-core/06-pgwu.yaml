@@ -1,22 +1,30 @@
 apiVersion: v1
-kind: Service
+kind: ConfigMap
 metadata:
-  name: upf
-  namespace: open5gs-4g
-spec:
-  selector:
-    app: upf
-  ports:
-    - name: s1u
-      protocol: UDP
-      port: 2152
-      targetPort: 2152
+  name: open5gs-pgwu-config
+  namespace: open5gs
+data:
+  upf.yaml: |
+    logger:
+      level: info
+      file:
+        path: /opt/open5gs/var/log/open5gs/upf.log
+    upf:
+      pfcp:
+        server:
+          - address: 0.0.0.0
+      gtpu:
+        server:
+          - address: 0.0.0.0
+      session:
+        - subnet: 10.45.0.0/16
+          gateway: 10.45.0.1
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: upf
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:
@@ -26,18 +34,37 @@ spec:
       labels:
         app: upf
     spec:
-      initContainers:
-        - name: init-tun
-          image: busybox
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            privileged: true
-          command: ["sh", "-c", "mkdir -p /dev/net && [ ! -c /dev/net/tun ] && mknod /dev/net/tun c 10 200 || true"]
       containers:
         - name: upf
           image: localhost:5000/open5gs-pgwu:latest
           imagePullPolicy: IfNotPresent
           securityContext:
+            runAsUser: 0
             privileged: true
-          command: ["/opt/open5gs/bin/open5gs-upfd"]
-          args: ["-c", "/opt/open5gs/etc/open5gs/upf.yaml"]
+            capabilities:
+              add: ["NET_ADMIN"]
+          command: ["/bin/sh", "/mnt/scripts/entrypoint.sh"]
+          args:
+            [
+              "/opt/open5gs/bin/open5gs-upfd",
+              "-c",
+              "/opt/open5gs/etc/open5gs/upf.yaml",
+            ]
+          volumeMounts:
+            - name: upf-config
+              mountPath: /opt/open5gs/etc/open5gs/upf.yaml
+              subPath: upf.yaml
+            - name: scripts
+              mountPath: /mnt/scripts
+            - name: dev-net-tun
+              mountPath: /dev/net/tun
+      volumes:
+        - name: upf-config
+          configMap:
+            name: open5gs-pgwu-config
+        - name: scripts
+          configMap:
+            name: open5gs-upf-scripts
+        - name: dev-net-tun
+          hostPath:
+            path: /dev/net/tun

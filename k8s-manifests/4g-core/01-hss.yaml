@@ -1,8 +1,37 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-hss-config
+  namespace: open5gs
+data:
+  hss.conf: |
+    Identity = "open5gs.localdomain";
+    Realm = "localdomain";
+    TLS_cred = "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.pem", "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.key";
+    TLS_CA = "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.pem";
+
+    LoadExtension = "dict_rfc5777.fdx";
+    LoadExtension = "dict_mip6i.fdx";
+    LoadExtension = "dict_nasreq.fdx";
+    LoadExtension = "dict_nas_mipv6.fdx";
+    LoadExtension = "dict_dcca.fdx";
+    LoadExtension = "dict_dcca_3gpp.fdx";
+
+    ConnectPeer = "open5gs.localdomain" { ConnectTo = "mme"; TcTimer = 60; TwTimer = 30; No_TLS; };
+  hss.yaml: |
+    db_uri: mongodb://mongodb:27017/open5gs
+    logger:
+      level: info
+      file:
+        path: /opt/open5gs/var/log/open5gs/hss.log
+    hss:
+      freeDiameter: /opt/open5gs/etc/open5gs/hss.conf
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: hss
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     app: hss
@@ -20,7 +49,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hss
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:
@@ -39,3 +68,22 @@ spec:
               value: mongodb://mongodb:27017/open5gs
           command: ["/opt/open5gs/bin/open5gs-hssd"]
           args: ["-c", "/opt/open5gs/etc/open5gs/hss.yaml"]
+          volumeMounts:
+            - name: hss-config
+              mountPath: /opt/open5gs/etc/open5gs/hss.yaml
+              subPath: hss.yaml
+            - name: hss-conf
+              mountPath: /opt/open5gs/etc/open5gs/hss.conf
+              subPath: hss.conf
+            - name: certs
+              mountPath: /opt/open5gs/etc/freeDiameter
+      volumes:
+        - name: hss-config
+          configMap:
+            name: open5gs-hss-config
+        - name: hss-conf
+          configMap:
+            name: open5gs-hss-config
+        - name: certs
+          configMap:
+            name: open5gs-certs

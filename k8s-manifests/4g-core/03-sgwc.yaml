@@ -1,8 +1,27 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-sgwc-config
+  namespace: open5gs
+data:
+  sgwc.yaml: |
+    logger:
+      level: info
+      file:
+        path: /opt/open5gs/var/log/open5gs/sgwc.log
+    sgwc:
+      gtpc:
+        server:
+          - address: 0.0.0.0
+      pfcp:
+        server:
+          - address: 0.0.0.0
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: sgwc
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     app: sgwc
@@ -20,7 +39,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sgwc
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:
@@ -36,3 +55,11 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["/opt/open5gs/bin/open5gs-sgwcd"]
           args: ["-c", "/opt/open5gs/etc/open5gs/sgwc.yaml"]
+          volumeMounts:
+            - name: sgwc-config
+              mountPath: /opt/open5gs/etc/open5gs/sgwc.yaml
+              subPath: sgwc.yaml
+      volumes:
+        - name: sgwc-config
+          configMap:
+            name: open5gs-sgwc-config

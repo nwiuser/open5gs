@@ -1,8 +1,27 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-sgwu-config
+  namespace: open5gs
+data:
+  sgwu.yaml: |
+    logger:
+      level: info
+      file:
+        path: /opt/open5gs/var/log/open5gs/sgwu.log
+    sgwu:
+      pfcp:
+        server:
+          - address: 0.0.0.0
+      gtpu:
+        server:
+          - address: 0.0.0.0
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: sgwu
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     app: sgwu
@@ -20,7 +39,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sgwu
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:
@@ -30,9 +49,32 @@ spec:
       labels:
         app: sgwu
     spec:
+      initContainers:
+        - name: init-tun
+          image: busybox
+          securityContext:
+            privileged: true
+          command:
+            [
+              "sh",
+              "-c",
+              "mkdir -p /dev/net && mknod /dev/net/tun c 10 200 || true && chmod 666 /dev/net/tun",
+            ]
       containers:
         - name: sgwu
           image: localhost:5000/open5gs-sgwu:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
           command: ["/opt/open5gs/bin/open5gs-sgwud"]
           args: ["-c", "/opt/open5gs/etc/open5gs/sgwu.yaml"]
+          volumeMounts:
+            - name: sgwu-config
+              mountPath: /opt/open5gs/etc/open5gs/sgwu.yaml
+              subPath: sgwu.yaml
+      volumes:
+        - name: sgwu-config
+          configMap:
+            name: open5gs-sgwu-config

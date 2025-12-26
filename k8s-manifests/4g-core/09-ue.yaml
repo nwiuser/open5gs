@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: srsue-config
+  namespace: open5gs
+data:
+  ue.conf: |
+    [ue]
+
+    [usim]
+    mode = soft
+    imsi = 999700000000001
+    imei = 350000000000001
+    algo = milenage
+    opc = E8ED289DEBA952E4283B54E88E6183CA
+    k = 465B5CE8B199B49FAA5F0A2EE238A6BC
+
+    [nas]
+    apn = internet
+
+    [rf]
+    tx_gain = 80
+    rx_gain = 40
+    device_name = zmq
+    device_args = tx_port=tcp://*:2001,rx_port=tcp://srsenb:2000,id=ue,base_srate=23.04e6
+
+    [rat.eutra]
+
+    [gw]
+    netns = tun_srsue
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: srsue
+  namespace: open5gs
+  labels:
+    app: srsue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: srsue
+  template:
+    metadata:
+      labels:
+        app: srsue
+    spec:
+      containers:
+        - name: ue
+          image: localhost:5000/srsran:latest
+          imagePullPolicy: IfNotPresent
+          command: ["srsue"]
+          args: ["/etc/srsran/ue.conf"] # unchanged
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
+          ports:
+            - containerPort: 2001 # ZMQ TX
+              name: zmq-tx
+          volumeMounts:
+            - name: config
+              mountPath: /etc/srsran/ue.conf
+              subPath: ue.conf
+      volumes:
+        - name: config
+          configMap:
+            name: srsue-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: srsue
+  namespace: open5gs
+spec:
+  selector:
+    app: srsue
+  ports:
+    - name: zmq-tx
+      port: 2001
+      targetPort: 2001

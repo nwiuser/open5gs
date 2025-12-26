@@ -1,8 +1,38 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-pgwc-config
+  namespace: open5gs
+data:
+  smf.yaml: |
+    logger:
+      level: info
+      file:
+        path: /opt/open5gs/var/log/open5gs/smf.log
+    db_uri: mongodb://mongodb:27017/open5gs
+    smf:
+      gtpc:
+        server:
+          - address: 0.0.0.0
+      gtpu:
+        server:
+          - address: 0.0.0.0
+      pfcp:
+        server:
+          - address: 0.0.0.0
+      session:
+        - subnet: 10.45.0.0/16
+          gateway: 10.45.0.1
+      dns:
+        - 8.8.8.8
+        - 8.8.4.4
+      mtu: 1400
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: smf
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     app: smf
@@ -15,7 +45,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: smf
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:
@@ -34,3 +64,11 @@ spec:
               value: mongodb://mongodb:27017/open5gs
           command: ["/opt/open5gs/bin/open5gs-smfd"]
           args: ["-c", "/opt/open5gs/etc/open5gs/smf.yaml"]
+          volumeMounts:
+            - name: smf-config
+              mountPath: /opt/open5gs/etc/open5gs/smf.yaml
+              subPath: smf.yaml
+      volumes:
+        - name: smf-config
+          configMap:
+            name: open5gs-pgwc-config

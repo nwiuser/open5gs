@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: srsue-config
+  namespace: open5gs
+  labels:
+    app: srsue
+  annotations: {}
+
+data:
+  ue.conf: "[ue]\n\n[usim]\nmode = soft\nimsi = 001010000000001\nalgo = milenage\nopc = E8ED289DEBA952E4283B54E88E6183CA\nk = 465B5CE8B199B49FAA5F0A2EE238A6BC\nplmn_id = 99970\n\n[nas]\napn = internet\n\n[rf]\ntx_gain = 80\nrx_gain = 40\ndevice_name = zmq\ndevice_args = tx_port=tcp://*:2001,rx_port=tcp://srsenb:2000,id=ue,base_srate=23.04e6\n\n[rat.eutra]\n\n[gw]\nnetns = tun_srsue\n"

@@ -33,7 +33,14 @@ $UeraTag = "localhost:5000/ueransim-gnb:latest"
 docker tag $UeraBase $UeraTag
 kind load docker-image $UeraTag --name $ClusterName
 
-# 5. MongoDB
+kind load docker-image $UeraTag --name $ClusterName
+
+# 5. srsRAN
+$SrsTag = "localhost:5000/srsran:latest"
+docker tag "gradiant/srsran-4g:23_04_1" $SrsTag
+kind load docker-image $SrsTag --name $ClusterName
+
+# 6. MongoDB
 $MongoTag = "localhost:5000/mongodb:latest"
 docker tag $MongoBase $MongoTag
 kind load docker-image $MongoTag --name $ClusterName

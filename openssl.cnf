@@ -1,0 +1,16 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+x509_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+CN = open5gs
+[v3_req]
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = hss.localdomain
+DNS.2 = mme.localdomain
+DNS.3 = hss
+DNS.4 = mme

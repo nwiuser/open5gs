@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: open5gs-webui
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     app: open5gs-webui
@@ -16,7 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: open5gs-webui
-  namespace: open5gs-4g
+  namespace: open5gs
 spec:
   selector:
     matchLabels:

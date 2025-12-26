@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open5gs-upf-scripts
+  namespace: open5gs
+data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+    echo "Setting up TUN device..."
+    mkdir -p /dev/net
+    if [ ! -c /dev/net/tun ]; then
+        mknod /dev/net/tun c 10 200 || true
+    fi
+    chmod 666 /dev/net/tun || true
+    id
+    ls -l /dev/net/tun
+    echo "Trying manual creation of ogstun..."
+    ip tuntap add mode tun dev ogstun || echo "Manual creation failed"
+    echo "TUN device ready."
+
+    # Run the original command
+    exec "$@"
