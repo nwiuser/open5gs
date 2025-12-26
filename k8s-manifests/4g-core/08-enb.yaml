@@ -9,36 +9,43 @@ data:
     enb_id = 0x19B
     mcc = 999
     mnc = 70
-    mme_addr = mme
-    gtp_bind_addr = 127.0.0.1
-    s1c_bind_addr = 127.0.0.1
+    mme_addr = 10.96.62.219
+    gtp_bind_addr = 0.0.0.0
+    s1c_bind_addr = 0.0.0.0
+    s1c_bind_port = 36412
     n_prb = 50
     tm = 1
+
+
+    [enb_files]
+    sib_config = /etc/srsran/sib.conf
+    rr_config = /etc/srsran/rr.conf
+    rb_config = /etc/srsran/rb.conf
 
     [rf]
     dl_earfcn = 3350
     tx_gain = 80
     rx_gain = 40
     device_name = zmq
-    device_args = fail_on_disconnect=true,tx_port=tcp://*:2000,rx_port=tcp://srsue:2001,id=enb,base_srate=23.04e6
+    device_args = fail_on_disconnect=true,tx_port=tcp://*:2000,rx_port=tcp://srsue.open5gs.svc.cluster.local:2001,id=enb,base_srate=23.04e6
 
   rr.conf: |
     mac_cnfg =
     {
       phr_cnfg =
       {
-        dl_pathloss_change = "dB3"; // Valid: 1, 3, 6 or INFINITY
+        dl_pathloss_change = "dB3";
         periodic_phr_timer = 50;
         prohibit_phr_timer = 0;
       };
       ulsch_cnfg =
       {
         max_harq_tx = 4;
-        periodic_bsr_timer = 20; // in ms
-        retx_bsr_timer = 320;   // in ms
+        periodic_bsr_timer = 20;
+        retx_bsr_timer = 320;
       };
 
-      time_alignment_timer = -1; // -1 is infinity
+      time_alignment_timer = -1;
     };
 
     phy_cnfg =
@@ -59,7 +66,7 @@ data:
       sched_request_cnfg =
       {
         dsr_trans_max = 64;
-        period = 20;          // in ms
+        period = 20;
         subframe = [1, 11];
         nof_prb = 2;
       };
@@ -68,7 +75,7 @@ data:
       {
         mode = "periodic";
         simultaneousAckCQI = true;
-        period = 40;          // in ms
+        period = 40;
         nom_pdsch_rs_epre_offset = 0;
         cqi_pmi_config_index = 78;
         ri_config_index = 322;
@@ -86,11 +93,9 @@ data:
         dl_earfcn = 3350;
         ho_active = false;
 
-        // CA cells
         scell_list = (
         )
 
-        // Cells available for handover
         meas_cell_list =
         (
           {
@@ -100,7 +105,6 @@ data:
           }
         );
 
-        // Select measurement report configuration (all reports are combined with all measurement objects)
         meas_report_desc =
         (
             {
@@ -115,7 +119,6 @@ data:
             }
         );
         meas_quant_desc = {
-            // averaging filter coefficient
             rsrq_config = 4;
             rsrp_config = 4;
          };
@@ -124,143 +127,141 @@ data:
 
     nr_cell_list =
     (
-      // no NR cells
     );
 
   sib.conf: |
     sib1 =
-    {
-        intra_freq_reselection = "Allowed";
-        q_rx_lev_min = -65;
-        //p_max = 3;
-        cell_barred = "NotBarred"
-        si_window_length = 20;
-        sched_info =
-        (
-            {
-                si_periodicity = 16;
-                si_mapping_info = [ 3 ];
-            }
-        );
-        system_info_value_tag = 0;
-    };
+      {
+      intra_freq_reselection = "Allowed";
+      q_rx_lev_min = -65;
+      cell_barred = "NotBarred"
+      si_window_length = 20;
+      sched_info =
+      (
+          {
+              si_periodicity = 16;
+              si_mapping_info = [ 3 ];
+          }
+      );
+      system_info_value_tag = 0;
+      };
 
     sib2 = 
-    {
-        rr_config_common_sib =
-        {
-            rach_cnfg = 
-            {
-                num_ra_preambles = 52;
-                preamble_init_rx_target_pwr = -104;
-                pwr_ramping_step = 6;  // in dB
-                preamble_trans_max = 10;
-                ra_resp_win_size = 10;  // in ms
-                mac_con_res_timer = 64; // in ms
-                max_harq_msg3_tx = 4;
-            };
-            bcch_cnfg = 
-            {
-                modification_period_coeff = 16; // in ms
-            };
-            pcch_cnfg = 
-            {
-                default_paging_cycle = 32; // in rf
-                nB = "1";
-            };
-            prach_cnfg =
-            {
-                root_sequence_index = 128;
-                prach_cnfg_info =
-                {
-                    high_speed_flag = false;
-                    prach_config_index = 3;
-                    prach_freq_offset = 4;
-                    zero_correlation_zone_config = 5;
-                };
-            };
-            pdsch_cnfg = 
-            {
-                p_b = 1;
-                rs_power = 0;
-            };
-            pusch_cnfg = 
-            {
-                n_sb = 1;
-                hopping_mode = "inter-subframe";
-                pusch_hopping_offset = 2;
-                enable_64_qam = false; // 64QAM PUSCH is not currently enabled
-                ul_rs = 
-                {
-                    cyclic_shift = 0; 
-                    group_assignment_pusch = 0;
-                    group_hopping_enabled = false; 
-                    sequence_hopping_enabled = false; 
-                };
-            };
-            pucch_cnfg =
-            {
-                delta_pucch_shift = 1;
-                n_rb_cqi = 1;
-                n_cs_an = 0;
-                n1_pucch_an = 12;
-            };
-            ul_pwr_ctrl =
-            {
-                p0_nominal_pusch = -85;
-                alpha = 0.7;
-                p0_nominal_pucch = -107;
-                delta_flist_pucch =
-                {
-                    format_1  = 0;
-                    format_1b = 3; 
-                    format_2  = 1;
-                    format_2a = 2;
-                    format_2b = 2;
-                };
-                delta_preamble_msg3 = 6;
-            };
-            ul_cp_length = "len1";
-        };
+      {
+      rr_config_common_sib =
+      {
+          rach_cnfg = 
+          {
+              num_ra_preambles = 52;
+              preamble_init_rx_target_pwr = -104;
+              pwr_ramping_step = 6;
+              preamble_trans_max = 10;
+              ra_resp_win_size = 10;
+              mac_con_res_timer = 64;
+              max_harq_msg3_tx = 4;
+          };
+          bcch_cnfg = 
+          {
+              modification_period_coeff = 16;
+          };
+          pcch_cnfg = 
+          {
+              default_paging_cycle = 32;
+              nB = "1";
+          };
+          prach_cnfg =
+          {
+              root_sequence_index = 128;
+              prach_cnfg_info =
+              {
+                  high_speed_flag = false;
+                  prach_config_index = 3;
+                  prach_freq_offset = 4;
+                  zero_correlation_zone_config = 5;
+              };
+          };
+          pdsch_cnfg = 
+          {
+              p_b = 1;
+              rs_power = 0;
+          };
+          pusch_cnfg = 
+          {
+              n_sb = 1;
+              hopping_mode = "inter-subframe";
+              pusch_hopping_offset = 2;
+              enable_64_qam = false;
+              ul_rs = 
+              {
+                  cyclic_shift = 0;
+                  group_assignment_pusch = 0;
+                  group_hopping_enabled = false;
+                  sequence_hopping_enabled = false;
+              };
+          };
+          pucch_cnfg =
+          {
+              delta_pucch_shift = 1;
+              n_rb_cqi = 1;
+              n_cs_an = 0;
+              n1_pucch_an = 12;
+          };
+          ul_pwr_ctrl =
+          {
+              p0_nominal_pusch = -85;
+              alpha = 0.7;
+              p0_nominal_pucch = -107;
+              delta_flist_pucch =
+              {
+                  format_1  = 0;
+                  format_1b = 3;
+                  format_2  = 1;
+                  format_2a = 2;
+                  format_2b = 2;
+              };
+              delta_preamble_msg3 = 6;
+          };
+          ul_cp_length = "len1";
+      };
 
-        ue_timers_and_constants =
-        {
-            t300 = 2000; // in ms
-            t301 = 100;  // in ms
-            t310 = 200; // in ms
-            n310 = 1;
-            t311 = 10000; // in ms
-            n311 = 1;
-        };
+      ue_timers_and_constants =
+      {
+          t300 = 2000;
+          t301 = 100;
+          t310 = 200;
+          n310 = 1;
+          t311 = 10000;
+          n311 = 1;
+      };
 
-        freqInfo = 
-        {
-            ul_carrier_freq_present = true; 
-            ul_bw_present = false;
-            additional_spectrum_emission = 1; 
-        };
+      freqInfo = 
+      {
+          ul_carrier_freq_present = true;
+          ul_bw_present = true;
+          additional_spectrum_emission = 1;
+      };
 
-        time_alignment_timer = "INFINITY"; // use "sf500", "sf750", etc.
+      time_alignment_timer = "INFINITY";
     };
 
     sib3 =
     {
-        cell_reselection_common = {
-            q_hyst = 2; // in dB
-        },
-        cell_reselection_serving = {
-            s_non_intra_search = 3,
-            thresh_serving_low = 2,
-            cell_resel_prio = 6
-        },
-        intra_freq_reselection = {
-            q_rx_lev_min = -61,
-            p_max = 23,
-            s_intra_search = 5,
-            presence_ant_port_1 = true,
-            neigh_cell_cnfg = 1,
-            t_resel_eutra = 1
-        }
+      cell_reselection_common = {
+          q_hyst = 2;
+      },
+      cell_reselection_serving = {
+          s_non_intra_search = 3,
+          thresh_serving_low = 2,
+          cell_resel_prio = 6
+      },
+      intra_freq_reselection = {
+          q_rx_lev_min = -61,
+          p_max = 23,
+          s_intra_search = 5,
+          presence_ant_port_1 = true,
+          neigh_cell_cnfg = 1,
+          t_resel_eutra = 1
+      }
     };
 
   rb.conf: |
@@ -318,7 +319,7 @@ data:
       {
         qci=9;
         pdcp_config = {
-          discard_timer = -1; // Infinity
+          discard_timer = -1;
           status_report_required = false;
         };
         rlc_config = {
@@ -423,36 +424,58 @@ spec:
       labels:
         app: srsenb
     spec:
+      initContainers:
+        # Cet initContainer copie les fichiers de configuration du ConfigMap
+        # vers un volume partagé (emptyDir) en s'assurant qu'ils ont les bonnes permissions.
+        - name: copy-config
+          image: busybox:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              mkdir -p /etc/srsran
+              # Copier chaque fichier du ConfigMap monté dans /config/
+              cp /config/enb.conf /etc/srsran/enb.conf
+              cp /config/rr.conf /etc/srsran/rr.conf
+              cp /config/sib.conf /etc/srsran/sib.conf
+              cp /config/rb.conf /etc/srsran/rb.conf
+              # Vérifier que les fichiers sont bien présents et lisibles
+              ls -la /etc/srsran/
+              chmod 644 /etc/srsran/*.conf
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+              readOnly: true
+            - name: srsran-volume
+              mountPath: /etc/srsran
       containers:
         - name: enb
           image: localhost:5000/srsran:latest
           imagePullPolicy: IfNotPresent
           command: ["srsenb"]
           args: ["/etc/srsran/enb.conf"]
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN", "SYS_NICE"]
           ports:
-            - containerPort: 2000 # ZMQ TX
+            - containerPort: 2000
               name: zmq-tx
-            - containerPort: 2152 # GTP
+            - containerPort: 2152
               name: gtp
-            - containerPort: 36412 # S1AP
+            - containerPort: 36412
               name: s1ap
           volumeMounts:
-            - name: config
-              mountPath: /etc/srsran/enb.conf
-              subPath: enb.conf
-            - name: config
-              mountPath: /etc/srsran/rr.conf
-              subPath: rr.conf
-            - name: config
-              mountPath: /etc/srsran/sib.conf
-              subPath: sib.conf
-            - name: config
-              mountPath: /etc/srsran/rb.conf
-              subPath: rb.conf
+            - name: srsran-volume
+              mountPath: /etc/srsran
+              readOnly: true
       volumes:
-        - name: config
+        # Volume temporaire pour lire le ConfigMap
+        - name: config-volume
           configMap:
             name: srsenb-config
+        # Volume partagé où les fichiers de configuration résideront
+        - name: srsran-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -466,3 +489,9 @@ spec:
     - name: zmq-tx
       port: 2000
       targetPort: 2000
+    - name: gtp
+      port: 2152
+      targetPort: 2152
+    - name: s1ap
+      port: 36412
+      targetPort: 36412
