@@ -8,8 +8,8 @@ Write-Host "Applying Base Manifests (Certs, etc.)..." -ForegroundColor Cyan
 kubectl apply -f k8s-manifests/00-certs.yaml --namespace open5gs
 kubectl apply -f k8s-manifests/00-upf-scripts.yaml --namespace open5gs
 
-Write-Host "Deploying 4G Core..." -ForegroundColor Cyan
-kubectl apply -f k8s-manifests/4g-core/ --namespace open5gs
+# Write-Host "Deploying 4G Core..." -ForegroundColor Cyan
+# kubectl apply -f k8s-manifests/4g-core/ --namespace open5gs
 
 Write-Host "Deploying 5G Core..." -ForegroundColor Cyan
 kubectl apply -f k8s-manifests/5g-core/ --namespace open5gs

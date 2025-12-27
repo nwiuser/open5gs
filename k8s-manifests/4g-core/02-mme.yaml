@@ -5,6 +5,7 @@ metadata:
   namespace: open5gs
 data:
   mme.conf: |
+    # Empty DIAMETER file (disabled)
     Identity = "mme.localdomain";
     Realm = "localdomain";
     TLS_cred = "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.pem", "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.key";
@@ -17,17 +18,24 @@ data:
     LoadExtension = "dict_dcca.fdx";
     LoadExtension = "dict_dcca_3gpp.fdx";
 
-    ConnectPeer = "hss.localdomain" { ConnectTo = "hss.open5gs.svc.cluster.local"; TcTimer = 30; TwTimer = 15; No_TLS; No_IP; Prefer_TCP; };
+    ConnectPeer = "hss.localdomain" { ConnectTo = "hss"; TcTimer = 30; TwTimer = 15; No_TLS; Port = 3868; };
   mme.yaml: |
     logger:
       level: info
-      file:
-        path: /opt/open5gs/var/log/open5gs/mme.log
+
     mme:
       freeDiameter: /opt/open5gs/etc/open5gs/mme.conf
+      
+      # Configuration S6a - essayons sans la section s6a
+      # s6a:  # Commentons pour voir
+      #   no_s6a: true
+      
+      # S1AP - configuration
       s1ap:
         server:
           - address: 0.0.0.0
+      
+      # GTP-C - configuration
       gtpc:
         server:
           - address: 0.0.0.0
@@ -35,24 +43,31 @@ data:
           sgwc:
             - address: sgwc
           smf:
-            - address: open5gs-smf
+            - address: smf
+      
+      # GUMMEI
       gummei:
         - plmn_id:
             mcc: 999
             mnc: 70
           mme_gid: 2
           mme_code: 1
+      
+      # TAI
       tai:
         - plmn_id:
             mcc: 999
             mnc: 70
           tac: 7
+      
       network_name:
         full: Open5GS
+      
       security:
         integrity_order : [ EIA2, EIA1, EIA0 ]
         ciphering_order : [ EEA0, EEA1, EEA2 ]
 ---
+# The Service and Deployment sections remain the same
 apiVersion: v1
 kind: Service
 metadata:

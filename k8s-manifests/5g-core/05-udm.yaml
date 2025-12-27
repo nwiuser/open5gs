@@ -6,15 +6,19 @@ metadata:
 data:
   udm.yaml: |
     logger:
-      level: info
+      level: debug
     udm:
       sbi:
         server:
           - address: 0.0.0.0
             port: 7777
+            advertise:
+              - open5gs-udm
         client:
           nrf:
             - uri: http://open5gs-nrf:7777
+          udr:
+            - uri: http://open5gs-udr:7777
           discovery:
             delegated: no
 ---

@@ -16,6 +16,8 @@ data:
       pfcp:
         server:
           - address: 0.0.0.0
+        client:
+          - address: sgwu
 ---
 apiVersion: v1
 kind: Service

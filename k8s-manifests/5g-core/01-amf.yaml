@@ -6,7 +6,7 @@ metadata:
 data:
   amf.yaml: |
     logger:
-      level: info
+      level: debug
     amf:
       amf_name: open5gs-amf0
       security:
@@ -15,7 +15,6 @@ data:
       network_name:
         full: Open5GS
         short: O5GS
-      amf_name: open5gs-amf0
       time:
         t3512:
           value: 540
@@ -26,7 +25,7 @@ data:
             mcc: 999
             mnc: 70
           amf_id:
-            region: 2
+            region: 128
             set: 1
             pointer: 1
       tai:
@@ -50,6 +49,12 @@ data:
         client:
           nrf:
             - uri: http://open5gs-nrf:7777
+          ausf:
+            - uri: http://open5gs-ausf:7777
+          udm:
+            - uri: http://open5gs-udm:7777
+          pcf:
+            - uri: http://open5gs-pcf:7777
           discovery:
             delegated: no
 ---

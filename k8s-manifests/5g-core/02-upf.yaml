@@ -6,16 +6,20 @@ metadata:
 data:
   upf.yaml: |
     logger:
-      level: info
+      level: debug
       file:
         path: /opt/open5gs/var/log/open5gs/upf.log
     upf:
       pfcp:
         server:
           - address: 0.0.0.0
+            advertise:
+              - open5gs-upf
       gtpu:
         server:
           - address: 0.0.0.0
+            advertise:
+              - open5gs-upf
       session:
         - subnet: 10.45.0.0/16
           gateway: 10.45.0.1

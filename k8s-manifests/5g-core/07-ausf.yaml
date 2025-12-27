@@ -6,15 +6,19 @@ metadata:
 data:
   ausf.yaml: |
     logger:
-      level: info
+      level: debug
     ausf:
       sbi:
         server:
           - address: 0.0.0.0
             port: 7777
+            advertise:
+              - open5gs-ausf
         client:
           nrf:
             - uri: http://open5gs-nrf:7777
+          udm:
+            - uri: http://open5gs-udm:7777
           discovery:
             delegated: no
 ---

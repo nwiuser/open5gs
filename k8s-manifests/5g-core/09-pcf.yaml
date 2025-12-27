@@ -7,7 +7,7 @@ data:
   pcf.yaml: |
     db_uri: mongodb://mongodb:27017/open5gs
     logger:
-      level: info
+      level: debug
       file:
         path: /opt/open5gs/var/log/open5gs/pcf.log
     pcf:
@@ -15,6 +15,8 @@ data:
         server:
           - address: 0.0.0.0
             port: 7777
+            advertise:
+              - open5gs-pcf
         client:
           nrf:
             - uri: http://open5gs-nrf:7777
