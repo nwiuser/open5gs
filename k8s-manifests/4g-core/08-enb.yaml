@@ -425,20 +425,16 @@ spec:
         app: srsenb
     spec:
       initContainers:
-        # Cet initContainer copie les fichiers de configuration du ConfigMap
-        # vers un volume partagé (emptyDir) en s'assurant qu'ils ont les bonnes permissions.
         - name: copy-config
           image: busybox:latest
           command: ["sh", "-c"]
           args:
             - |
               mkdir -p /etc/srsran
-              # Copier chaque fichier du ConfigMap monté dans /config/
               cp /config/enb.conf /etc/srsran/enb.conf
               cp /config/rr.conf /etc/srsran/rr.conf
               cp /config/sib.conf /etc/srsran/sib.conf
               cp /config/rb.conf /etc/srsran/rb.conf
-              # Vérifier que les fichiers sont bien présents et lisibles
               ls -la /etc/srsran/
               chmod 644 /etc/srsran/*.conf
           volumeMounts:
@@ -469,11 +465,9 @@ spec:
               mountPath: /etc/srsran
               readOnly: true
       volumes:
-        # Volume temporaire pour lire le ConfigMap
         - name: config-volume
           configMap:
             name: srsenb-config
-        # Volume partagé où les fichiers de configuration résideront
         - name: srsran-volume
           emptyDir: {}
 ---

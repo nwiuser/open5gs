@@ -5,7 +5,7 @@ metadata:
   namespace: open5gs
 data:
   hss.conf: |
-    Identity = "open5gs.localdomain";
+    Identity = "hss.localdomain";
     Realm = "localdomain";
     TLS_cred = "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.pem", "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.key";
     TLS_CA = "/opt/open5gs/etc/freeDiameter/ssl-cert-snakeoil.pem";
@@ -17,7 +17,7 @@ data:
     LoadExtension = "dict_dcca.fdx";
     LoadExtension = "dict_dcca_3gpp.fdx";
 
-    ConnectPeer = "open5gs.localdomain" { ConnectTo = "mme"; TcTimer = 60; TwTimer = 30; No_TLS; };
+    ConnectPeer = "mme.localdomain" { ConnectTo = "mme.open5gs.svc.cluster.local"; TcTimer = 30; TwTimer = 15; No_TLS; No_IP; Prefer_TCP; };
   hss.yaml: |
     db_uri: mongodb://mongodb:27017/open5gs
     logger:
