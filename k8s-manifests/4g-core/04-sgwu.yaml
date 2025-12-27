@@ -12,10 +12,10 @@ data:
     sgwu:
       pfcp:
         server:
-          - address: 0.0.0.0
+          - addr: 0.0.0.0
       gtpu:
         server:
-          - address: 0.0.0.0
+          - addr: 0.0.0.0
 ---
 apiVersion: v1
 kind: Service

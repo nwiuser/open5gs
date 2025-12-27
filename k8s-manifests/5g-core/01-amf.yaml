@@ -46,6 +46,8 @@ data:
         server:
           - address: 0.0.0.0
             port: 7777
+            advertise:
+              - open5gs-amf
         client:
           nrf:
             - uri: http://open5gs-nrf:7777

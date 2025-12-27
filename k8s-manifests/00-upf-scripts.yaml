@@ -17,6 +17,20 @@ data:
     ls -l /dev/net/tun
     echo "Trying manual creation of ogstun..."
     ip tuntap add mode tun dev ogstun || echo "Manual creation failed"
+
+    # Configure the TUN interface
+    echo "Configuring ogstun interface..."
+    ip addr add 10.45.0.1/16 dev ogstun || echo "IP already configured"
+    ip link set ogstun up
+
+    # Enable IP forwarding
+    echo "Enabling IP forwarding..."
+    sysctl -w net.ipv4.ip_forward=1
+
+    # Add iptables masquerade for NAT
+    echo "Setting up NAT..."
+    iptables -t nat -A POSTROUTING -s 10.45.0.0/16 ! -o ogstun -j MASQUERADE || echo "iptables rule exists"
+
     echo "TUN device ready."
 
     # Run the original command

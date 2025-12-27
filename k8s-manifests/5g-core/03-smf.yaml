@@ -20,6 +20,12 @@ data:
         client:
           nrf:
             - uri: http://open5gs-nrf:7777
+          amf:
+            - uri: http://open5gs-amf:7777
+          pcf:
+            - uri: http://open5gs-pcf:7777
+          discovery:
+            delegated: no
       gtpc:
         server:
           - address: 0.0.0.0
@@ -29,6 +35,8 @@ data:
       pfcp:
         server:
           - address: 0.0.0.0
+            advertise:
+              - open5gs-smf
         client:
           upf:
             - address: open5gs-upf
